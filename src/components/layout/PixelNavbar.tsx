@@ -1,11 +1,22 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useState, useRef, useEffect } from "react";
 import { gsap } from "gsap";
-import { User, Gamepad2, FileText, Zap } from "lucide-react";
+import { User, Gamepad2, FileText, Zap, LogOut } from "lucide-react";
+import { auth } from "@/lib/firebase";
+import { onAuthStateChanged, signOut, User as FirebaseUser } from "firebase/auth";
 
 const PixelNavbar = () => {
   const [isHovered, setIsHovered] = useState<string | null>(null);
   const navRef = useRef<HTMLDivElement>(null);
+  const [user, setUser] = useState<FirebaseUser | null>(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+    });
+    return () => unsubscribe();
+  }, []);
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -19,24 +30,56 @@ const PixelNavbar = () => {
     return () => ctx.revert();
   }, []);
 
-  const NavItem = ({ to, label, icon: Icon, id }: any) => (
-    <Link
-      to={to}
-      onMouseEnter={() => setIsHovered(id)}
-      onMouseLeave={() => setIsHovered(null)}
-      className="relative group px-6 py-2"
-    >
-      <div
-        className={`absolute inset-0 border-2 border-black bg-white transition-all duration-200 ${
-          isHovered === id ? "translate-x-1 translate-y-1 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] bg-yellow-300" : "shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
-        }`}
-      />
-      <div className="relative z-10 flex items-center gap-2 font-display font-bold uppercase tracking-wide text-black">
-        <Icon className={`w-4 h-4 ${isHovered === id ? "animate-bounce" : ""}`} />
-        {label}
-      </div>
-    </Link>
-  );
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      navigate("/");
+    } catch (error) {
+      console.error("Logout error", error);
+    }
+  };
+
+  const NavItem = ({ to, label, icon: Icon, id, onClick }: any) => {
+    if (onClick) {
+      return (
+        <button
+          onClick={onClick}
+          onMouseEnter={() => setIsHovered(id)}
+          onMouseLeave={() => setIsHovered(null)}
+          className="relative group px-6 py-2"
+        >
+          <div
+            className={`absolute inset-0 border-2 border-black bg-white transition-all duration-200 ${
+              isHovered === id ? "translate-x-1 translate-y-1 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] bg-yellow-300" : "shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
+            }`}
+          />
+          <div className="relative z-10 flex items-center gap-2 font-display font-bold uppercase tracking-wide text-black">
+            <Icon className={`w-4 h-4 ${isHovered === id ? "animate-bounce" : ""}`} />
+            {label}
+          </div>
+        </button>
+      );
+    }
+    
+    return (
+      <Link
+        to={to}
+        onMouseEnter={() => setIsHovered(id)}
+        onMouseLeave={() => setIsHovered(null)}
+        className="relative group px-6 py-2"
+      >
+        <div
+          className={`absolute inset-0 border-2 border-black bg-white transition-all duration-200 ${
+            isHovered === id ? "translate-x-1 translate-y-1 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] bg-yellow-300" : "shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
+          }`}
+        />
+        <div className="relative z-10 flex items-center gap-2 font-display font-bold uppercase tracking-wide text-black">
+          <Icon className={`w-4 h-4 ${isHovered === id ? "animate-bounce" : ""}`} />
+          {label}
+        </div>
+      </Link>
+    );
+  };
 
   return (
     <nav ref={navRef} className="fixed top-6 left-0 right-0 z-50 px-6 pointer-events-none">
