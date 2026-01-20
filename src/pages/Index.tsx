@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { gsap } from "gsap";
 import PixelNavbar from "@/components/layout/PixelNavbar";
 import ReactiveWeb from "@/components/ui/ReactiveWeb";
+import { PixelMascot } from "@/components/ui/PixelMascot";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Trophy, Swords, Scroll, Gamepad2, BrainCircuit, Target, User } from "lucide-react";
 
@@ -72,6 +73,31 @@ const Index = () => {
                  </div>
                </div>
              </Link>
+          </div>
+
+          <div className="mt-12 flex justify-center hero-text">
+             <style>
+               {`
+                 @keyframes wave {
+                   0%, 100% { transform: rotate(0deg); }
+                   25% { transform: rotate(-5deg); }
+                   75% { transform: rotate(5deg); }
+                 }
+                 .animate-wave {
+                   animation: wave 2s infinite ease-in-out;
+                 }
+               `}
+             </style>
+             <div className="relative group cursor-pointer">
+                <PixelMascot 
+                  className="w-32 h-32 md:w-40 md:h-40 animate-wave hover:scale-110 transition-transform duration-300 drop-shadow-[4px_4px_0px_rgba(0,0,0,1)]"
+                />
+                {/* Speech Bubble Tooltip */}
+                <div className="absolute -top-8 -right-12 bg-white border-2 border-black px-3 py-1 rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] text-xs font-bold uppercase animate-bounce delay-700">
+                   Hi there! 👋
+                   <div className="absolute bottom-[-6px] left-0 w-3 h-3 bg-white border-b-2 border-r-2 border-black transform rotate-45"></div>
+                </div>
+             </div>
           </div>
         </div>
 
