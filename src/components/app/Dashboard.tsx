@@ -140,7 +140,7 @@ const Dashboard = ({
               LEVEL {userProfile?.semester || 1}
             </div>
             <div className="text-xs text-muted-foreground font-mono">
-               XP: {progressData.overallProgress * 100} / 10000
+               XP: {Math.floor((progressData?.overallProgress || 0) * 100)} / 10000
             </div>
           </div>
         </div>

@@ -80,18 +80,16 @@ const AppPage = () => {
   ]);
 
   const [progressData, setProgressData] = useState<ProgressData>({
-    overallProgress: 34,
-    semesterProgress: 0, // Start at 0 for realism until updated
-    skillsCompleted: 8,
-    skillsTotal: 24,
-    estimatedMonths: 14,
+    overallProgress: 0,
+    semesterProgress: 0, 
+    skillsCompleted: 0,
+    skillsTotal: 20,
+    estimatedMonths: 24,
     skillGaps: [
-      { name: "DSA", current: 45, target: 90 },
-      { name: "System Design", current: 20, target: 85 },
-      { name: "React", current: 70, target: 90 },
-      { name: "TypeScript", current: 55, target: 85 },
-      { name: "Cloud", current: 15, target: 75 },
-      { name: "CI/CD", current: 30, target: 70 },
+      { name: "DSA", current: 0, target: 80 },
+      { name: "System Design", current: 0, target: 75 },
+      { name: "Development", current: 0, target: 85 },
+      { name: "CS Fundamentals", current: 0, target: 90 },
     ],
   });
 
