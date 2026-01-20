@@ -130,7 +130,7 @@ const Dashboard = ({
               </h1>
               <p className="text-lg text-muted-foreground font-medium mt-1 flex items-center gap-2">
                 <BrainCircuit className="h-5 w-5 text-primary" />
-                Let's crush some bugs and master DSA today.
+                {userProfile?.dailyFocus || "Let's crush some bugs and master DSA today."}
               </p>
             </div>
           </div>

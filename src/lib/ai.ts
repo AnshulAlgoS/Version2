@@ -243,3 +243,48 @@ export const expandProfileWithAI = async (
     return `Unable to generate AI profile at this time. (Error: ${error instanceof Error ? error.message : "Unknown"})`;
   }
 };
+
+export const generateDailyPlan = async (userProfile: any) => {
+  try {
+    const systemPrompt = `You are a personalized AI Career Coach.
+    Based on the user's profile, generate a focused daily plan.
+    
+    User Context:
+    - Current Role: ${userProfile.currentRole || "Student"}
+    - Target Role: ${userProfile.targetRole || "Software Engineer"}
+    - Semester: ${userProfile.semester || 1}
+    - Skills: ${userProfile.skills?.join(", ") || "General"}
+    - Aspirations: ${userProfile.aspirations?.join(", ") || "Growth"}
+
+    Output STRICT JSON ONLY:
+    {
+      "dailyFocus": "A short, motivating 1-sentence focus for today.",
+      "todos": [
+        { "text": "Specific actionable task 1 (max 6 words)", "category": "dsa" },
+        { "text": "Specific actionable task 2 (max 6 words)", "category": "project" },
+        { "text": "Specific actionable task 3 (max 6 words)", "category": "learning" }
+      ],
+      "coachMessage": "A short, encouraging tip from a friendly AI coach."
+    }`;
+
+    const completion = await client.chat.completions.create({
+      model: "nvidia/llama-3.3-nemotron-super-49b-v1.5",
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: "Generate my daily plan." }
+      ],
+      temperature: 0.7,
+      max_tokens: 1024,
+      response_format: { type: "json_object" }
+    });
+
+    const content = completion.choices[0]?.message?.content || "{}";
+    let cleanContent = content.replace(/<think>[\s\S]*?<\/think>/g, "").trim();
+    if (cleanContent.includes("<think>")) cleanContent = cleanContent.split("<think>")[0].trim();
+    
+    return JSON.parse(cleanContent);
+  } catch (error) {
+    console.error("Error generating daily plan:", error);
+    return null;
+  }
+};

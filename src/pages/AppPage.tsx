@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import ChatSidebar from "@/components/app/ChatSidebar";
 import Dashboard from "@/components/app/Dashboard";
 import ProfileSetupModal from "@/components/app/ProfileSetupModal";
-import { expandProfileWithAI } from "@/lib/ai";
+import { expandProfileWithAI, generateDailyPlan } from "@/lib/ai";
 import { toast } from "sonner";
 import { doc, setDoc, getDoc } from "firebase/firestore";
 import { db, auth } from "@/lib/firebase";
@@ -91,13 +91,25 @@ const AppPage = () => {
             setUserProfile(data);
             
             // Load Todos if available
-            if (data.todos) {
+            if (data.todos && data.todos.length > 0) {
               // Convert Firestore Timestamps to Date objects
               const loadedTodos = data.todos.map((t: any) => ({
                 ...t,
                 date: t.date?.toDate ? t.date.toDate() : new Date(t.date),
               }));
-              setCalendarTodos(loadedTodos);
+              
+              // Check for legacy hardcoded data
+              const hasLegacyData = loadedTodos.some((t: any) => t.text === "Solve 3 LeetCode problems");
+              if (hasLegacyData) {
+                 // Clean legacy data
+                 setCalendarTodos([]);
+                 generateSmartPlan(data);
+              } else {
+                 setCalendarTodos(loadedTodos);
+              }
+            } else {
+               // No todos found, generate smart plan
+               generateSmartPlan(data);
             }
 
             // Load Progress Data if available
@@ -137,6 +149,38 @@ const AppPage = () => {
 
     return () => unsubscribe();
   }, []);
+
+  const generateSmartPlan = async (profile: UserProfile) => {
+    try {
+      const plan = await generateDailyPlan(profile);
+      if (plan && plan.todos) {
+        const newTodos: TodoItem[] = plan.todos.map((t: any, i: number) => ({
+          id: Date.now().toString() + i,
+          text: t.text,
+          completed: false,
+          date: new Date(),
+          category: t.category
+        }));
+        setCalendarTodos(newTodos);
+        
+        // Save to Firestore
+        const user = auth.currentUser;
+        if (user) {
+          await setDoc(doc(db, "users", user.uid), { 
+            todos: newTodos,
+            dailyFocus: plan.dailyFocus || "Let's make today productive!"
+          }, { merge: true });
+          
+          // Update local state for focus
+          setUserProfile(prev => prev ? ({ ...prev, dailyFocus: plan.dailyFocus }) : null);
+        }
+        
+        toast.success("AI Daily Plan Ready", { description: plan.dailyFocus });
+      }
+    } catch (e) {
+      console.error("Failed to generate plan", e);
+    }
+  };
 
   const handleProfileComplete = async (profileData: UserProfile) => {
     const user = auth.currentUser;
@@ -209,6 +253,9 @@ const AppPage = () => {
             "target",
             profileData.interviewAnswers
           );
+          
+          // Generate Daily Plan
+          generateSmartPlan(profileData);
           
           const finalProfile = {
             ...profileData,
