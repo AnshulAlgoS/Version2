@@ -279,8 +279,8 @@ const Dashboard = ({
             Semester Timeline
           </h2>
           <SemesterTimeline
-            currentSemester={userProfile?.semester || 4}
-            progress={progressData.semesterProgress}
+            currentSemester={userProfile?.semester || 1}
+            progress={progressData?.semesterProgress || 0}
           />
         </div>
 

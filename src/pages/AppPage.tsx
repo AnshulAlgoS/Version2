@@ -62,22 +62,7 @@ const AppPage = () => {
   const [targetProfiles, setTargetProfiles] = useState<TargetProfile[]>([]);
   
   // Lifted Calendar State
-  const [calendarTodos, setCalendarTodos] = useState<TodoItem[]>([
-    {
-      id: "1",
-      text: "Solve 3 LeetCode problems",
-      completed: true,
-      date: new Date(),
-      category: "dsa",
-    },
-    {
-      id: "2",
-      text: "Work on portfolio project",
-      completed: false,
-      date: new Date(),
-      category: "project",
-    },
-  ]);
+  const [calendarTodos, setCalendarTodos] = useState<TodoItem[]>([]);
 
   const [progressData, setProgressData] = useState<ProgressData>({
     overallProgress: 0,
@@ -179,6 +164,25 @@ const AppPage = () => {
     // 2. Save Initial Data to Firestore
     try {
       await setDoc(doc(db, "users", user.uid), initialProfile);
+      
+      // Update progress data based on new skills
+      if (profileData.skills && profileData.skills.length > 0) {
+         const generatedGaps = profileData.skills.slice(0, 6).map((skill: string) => ({
+           name: skill,
+           current: 10, 
+           target: 85
+         }));
+         const newProgress = {
+            ...progressData,
+            skillGaps: generatedGaps,
+            skillsCompleted: Math.max(1, Math.floor(profileData.skills.length * 0.2)),
+            skillsTotal: profileData.skills.length + 5
+         };
+         setProgressData(newProgress);
+         // Save progress too
+         await setDoc(doc(db, "users", user.uid), { progressData: newProgress }, { merge: true });
+      }
+
       toast.success("Profile saved!");
     } catch (error: any) {
       console.error("Error saving profile:", error);
