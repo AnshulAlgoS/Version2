@@ -2,7 +2,9 @@ import OpenAI from "openai";
 
 const apiKey = import.meta.env.VITE_NVIDIA_API_KEY;
 const getBaseUrl = () => {
-  if (typeof window !== "undefined") {
+  if (typeof window !== "undefined" && window.location && window.location.origin) {
+    // In production (Vercel), we need to use the relative path which will be rewritten by vercel.json
+    // to https://integrate.api.nvidia.com/v1
     return `${window.location.origin}/api/nvidia/v1`;
   }
   return "https://integrate.api.nvidia.com/v1";
