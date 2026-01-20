@@ -53,12 +53,17 @@ export const processUserChat = async (
        - Semester changes (e.g., "semester 3 is over", "starting sem 4")
        - Achievements (e.g., "won hackathon", "finalist")
        - Goals/Plans (e.g., "grinding dsa", "learning react")
-       - Daily Tasks (e.g., "will do X today")
+       - Daily Tasks: The user may provide raw/vague tasks (e.g., "do some dsa", "deploy react"). You must REFINE these into specific, actionable Todo items (max 6-8 words).
+         Examples:
+         - "dsa" -> { "text": "Solve 2 Medium LeetCode Problems", "category": "dsa" }
+         - "react project" -> { "text": "Build React Component Structure", "category": "project" }
+         - "read sre" -> { "text": "Read SRE Book Chapter 4", "category": "learning" }
        - Resume/Career Questions: Check 'comparisons' in the context. If the user asks about resume feedback, refer to their latest match score, missing skills, and feedback.
     2. If the user mentions a new semester, update 'semester' and reset 'semesterProgress' to 0.
     3. If the user mentions achievements, append them to 'achievements'.
-    4. If the user mentions plans for *today* or *soon*, create 'todoUpdates'.
+    4. If the user mentions plans for *today* or *soon*, create 'todoUpdates' with REFINED, actionable text.
     5. Always provide a conversational 'response' to the user.
+       - If you added tasks, confirm them: "I've added 'Solve 2 LeetCode Problems' to your DSA list."
        - If they talk about their resume, reference their specific missing skills from the 'comparisons' data.
        - If they have 'aspirations' in their profile (e.g., "Focus on DSA"), encourage them or suggest tasks related to those aspirations.
        - If they are starting a new day, be encouraging.
@@ -66,7 +71,7 @@ export const processUserChat = async (
     {
       "response": "User-facing message",
       "profileUpdates": { "semester": number, "achievements": ["new achievement"], "bio": "updated bio" },
-      "todoUpdates": [{ "text": "Task description", "category": "dsa" }],
+      "todoUpdates": [{ "text": "Refined Task Description", "category": "dsa" }],
       "progressUpdates": { "semesterProgress": number }
     }
     

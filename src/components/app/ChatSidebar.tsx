@@ -171,12 +171,17 @@ const ChatSidebar = ({
       className="flex h-full w-[400px] flex-col border-r-4 border-black bg-sidebar shadow-[4px_0px_0px_0px_rgba(0,0,0,0.1)] font-sans"
     >
       <div className="flex items-center justify-between border-b-4 border-black p-4 bg-white">
-        <div className="flex items-center gap-2">
-          <img 
-            src="/version-logo.png" 
-            alt="Version2" 
-            className="h-8 w-auto object-contain" 
-          />
+        <div className="flex flex-col">
+          <div className="flex items-center gap-2">
+            <img 
+              src="/version-logo.png" 
+              alt="Version2" 
+              className="h-8 w-auto object-contain" 
+            />
+          </div>
+          <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mt-1">
+            {new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+          </div>
         </div>
         <Button variant="ghost" size="icon" onClick={onProfileEdit}>
           <Settings className="h-5 w-5" />
