@@ -27,6 +27,11 @@ export interface UserProfile {
   chatHistory?: { id: string; role: "user" | "assistant"; content: string; timestamp: any }[];
   comparisons?: { id: string; date: any; score: number; missingSkills: string[]; feedback: string }[];
   aspirations?: string[];
+  dailyPlanStatus?: {
+    date: string;
+    isConfirmed: boolean;
+  };
+  dailyFocus?: string;
 }
 
 export interface TargetProfile {
@@ -78,6 +83,43 @@ const AppPage = () => {
     ],
   });
 
+  // Helper to run AI analysis
+  const runAIAnalysis = async (profile: UserProfile) => {
+    const user = auth.currentUser;
+    if (!user) return;
+
+    // Set generating state
+    setUserProfile(prev => prev ? { ...prev, isGeneratingAI: true } : { ...profile, isGeneratingAI: true });
+
+    try {
+      const currentDesc = await expandProfileWithAI(
+        profile.currentRole || "Student", 
+        "current",
+        profile.interviewAnswers
+      );
+
+      const targetDesc = await expandProfileWithAI(
+        profile.targetRole || "Software Engineer", 
+        "target",
+        profile.interviewAnswers
+      );
+
+      const finalProfile = {
+        ...profile,
+        currentDescription: currentDesc,
+        targetDescription: targetDesc,
+        isGeneratingAI: false
+      };
+
+      setUserProfile(finalProfile);
+      await setDoc(doc(db, "users", user.uid), finalProfile, { merge: true });
+      toast.success("AI Analysis Updated");
+    } catch (error) {
+      console.error("AI Analysis Failed:", error);
+      setUserProfile(prev => prev ? { ...prev, isGeneratingAI: false } : null);
+    }
+  };
+
   // Fetch User Data on Mount
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(async (user) => {
@@ -90,6 +132,18 @@ const AppPage = () => {
             const data = userDoc.data() as UserProfile;
             setUserProfile(data);
             
+            // CHECK FOR FAILED AI ANALYSIS AND RETRY
+            if (
+              !data.currentDescription || 
+              data.currentDescription.includes("Unable to generate") || 
+              data.currentDescription.includes("Error:") ||
+              !data.targetDescription ||
+              data.targetDescription.includes("Unable to generate")
+            ) {
+              console.log("Detected failed or missing AI analysis, retrying...");
+              runAIAnalysis(data);
+            }
+
             // Load Todos if available
             if (data.todos && data.todos.length > 0) {
               // Convert Firestore Timestamps to Date objects
@@ -324,6 +378,21 @@ const AppPage = () => {
     toast.success("Task Added", { description: `Added "${text}" to your calendar.` });
   };
 
+  const handleAddTodos = (newTasks: { text: string, category: TodoItem["category"] }[]) => {
+    const addedTodos = newTasks.map((task, i) => ({
+      id: Date.now().toString() + i,
+      text: task.text,
+      completed: false,
+      date: new Date(),
+      category: task.category || "learning"
+    })) as TodoItem[];
+    
+    const updatedTodos = [...calendarTodos, ...addedTodos];
+    setCalendarTodos(updatedTodos);
+    saveTodos(updatedTodos);
+    toast.success("Tasks Updated", { description: `Added ${addedTodos.length} new tasks from AI.` });
+  };
+
   const handleToggleTodo = (id: string) => {
     const updatedTodos = calendarTodos.map(t => t.id === id ? { ...t, completed: !t.completed } : t);
     setCalendarTodos(updatedTodos);
@@ -367,6 +436,7 @@ const AppPage = () => {
         onProfileEdit={() => setShowProfileSetup(true)}
         onUpdateProgress={handleUpdateProgress}
         onAddTodo={handleAddTodo}
+        onAddTodos={handleAddTodos}
         onUpdateProfile={handleUpdateProfile}
       />
 

@@ -26,6 +26,7 @@ interface ChatSidebarProps {
   onProfileEdit: () => void;
   onUpdateProgress: (data: Partial<ProgressData>) => void;
   onAddTodo: (text: string, category?: TodoItem["category"]) => void;
+  onAddTodos?: (tasks: { text: string, category: TodoItem["category"] }[]) => void;
   onUpdateProfile: (data: Partial<UserProfile>) => void;
 }
 
@@ -35,6 +36,7 @@ const ChatSidebar = ({
   onProfileEdit,
   onUpdateProgress,
   onAddTodo,
+  onAddTodos,
   onUpdateProfile,
 }: ChatSidebarProps) => {
   const [messages, setMessages] = useState<Message[]>([
@@ -75,7 +77,13 @@ const ChatSidebar = ({
             timestamp: new Date()
          };
          loadedMessages.push(dailyPrompt);
-         onUpdateProfile({ chatHistory: loadedMessages });
+         onUpdateProfile({ 
+            chatHistory: loadedMessages,
+            dailyPlanStatus: {
+                date: new Date().toLocaleDateString('en-CA'),
+                isConfirmed: false
+            }
+         });
       }
 
       setMessages(loadedMessages);
@@ -118,7 +126,13 @@ const ChatSidebar = ({
     setIsTyping(true);
 
     try {
-      const result = await processUserChat(userMessage.content, userProfile);
+
+      const updatedProfileContext = {
+         ...userProfile,
+         chatHistory: newMessages 
+      };
+
+      const result = await processUserChat(userMessage.content, updatedProfileContext);
       
       if (result.profileUpdates) {
         let updatedProfile = { ...result.profileUpdates };
@@ -130,15 +144,31 @@ const ChatSidebar = ({
         }
         onUpdateProfile(updatedProfile);
       }
+
+      if (result.dailyPlanConfirmed) {
+        onUpdateProfile({
+          dailyPlanStatus: {
+            date: new Date().toLocaleDateString('en-CA'),
+            isConfirmed: true
+          }
+        });
+      }
       
       if (result.progressUpdates) {
         onUpdateProgress(result.progressUpdates);
       }
       
       if (result.todoUpdates) {
-        result.todoUpdates.forEach(todo => {
-          onAddTodo(todo.text, todo.category);
-        });
+        if (onAddTodos) {
+           onAddTodos(result.todoUpdates.map(t => ({ 
+             text: t.text, 
+             category: t.category as TodoItem["category"] 
+           })));
+        } else {
+           result.todoUpdates.forEach(todo => {
+             onAddTodo(todo.text, todo.category);
+           });
+        }
       }
 
       const aiMessage: Message = {

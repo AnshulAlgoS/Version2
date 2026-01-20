@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 
 interface PixelPikachuProps {
@@ -9,7 +9,23 @@ interface PixelPikachuProps {
   scale?: number;
 }
 
-export const PixelPikachu = ({ state = "neutral", direction = "right", thought, className = "", scale = 1 }: PixelPikachuProps) => {
+const PHRASES = [
+  "Pika Pika!",
+  "Let's build!",
+  "You got this!",
+  "Debug mode: ON",
+  "Zap that bug!",
+  "High voltage!",
+  "Code checks out.",
+  "Pikaaaa!",
+  "Keep going!",
+  "Nice syntax!"
+];
+
+export const PixelPikachu = ({ state = "neutral", direction = "right", thought: propThought, className = "", scale = 1 }: PixelPikachuProps) => {
+  const [internalThought, setInternalThought] = useState("");
+  const [isInteracting, setIsInteracting] = useState(false);
+  
   const wrapperRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const headRef = useRef<HTMLDivElement>(null);
@@ -22,6 +38,66 @@ export const PixelPikachu = ({ state = "neutral", direction = "right", thought, 
   const leftArmRef = useRef<HTMLDivElement>(null);
   const rightArmRef = useRef<HTMLDivElement>(null);
   const thoughtRef = useRef<HTMLDivElement>(null);
+
+  const activeThought = propThought || internalThought;
+
+  const handleInteraction = () => {
+    if (isInteracting) return;
+    setIsInteracting(true);
+    
+    // Pick random phrase
+    const randomPhrase = PHRASES[Math.floor(Math.random() * PHRASES.length)];
+    setInternalThought(randomPhrase);
+
+    // Jump animation
+    gsap.to(containerRef.current, {
+      y: -15,
+      duration: 0.2,
+      yoyo: true,
+      repeat: 1,
+      ease: "power2.out"
+    });
+
+    // Ear wiggle
+    gsap.to([leftEarRef.current, rightEarRef.current], {
+      rotate: 15,
+      duration: 0.1,
+      yoyo: true,
+      repeat: 3
+    });
+
+    // Reset after a few seconds
+    setTimeout(() => {
+      setInternalThought("");
+      setIsInteracting(false);
+    }, 3000);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (state !== "neutral" && state !== "walking") return;
+    if (!wrapperRef.current) return;
+
+    const rect = wrapperRef.current.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    
+    const moveX = (e.clientX - centerX) / 20;
+    const moveY = (e.clientY - centerY) / 20;
+
+    gsap.to([leftEyeRef.current, rightEyeRef.current], {
+      x: gsap.utils.clamp(-3, 3, moveX),
+      y: gsap.utils.clamp(-3, 3, moveY),
+      duration: 0.2
+    });
+  };
+
+  const handleMouseLeave = () => {
+    gsap.to([leftEyeRef.current, rightEyeRef.current], {
+      x: 0,
+      y: 0,
+      duration: 0.4
+    });
+  };
 
   useEffect(() => {
     if (wrapperRef.current) {
@@ -44,6 +120,7 @@ export const PixelPikachu = ({ state = "neutral", direction = "right", thought, 
 
   useEffect(() => {
     const ctx = gsap.context(() => {
+      // Clear previous animations
       gsap.killTweensOf([
         containerRef.current, 
         headRef.current,
@@ -57,42 +134,27 @@ export const PixelPikachu = ({ state = "neutral", direction = "right", thought, 
         rightArmRef.current
       ]);
 
+      // Base idle animation (breathing)
       if (state !== "excited" && state !== "walking") {
         gsap.to(containerRef.current, {
-          y: -4,
-          duration: 2,
-          repeat: -1,
-          yoyo: true,
-          ease: "sine.inOut",
-        });
-        
-        gsap.to(headRef.current, {
-          y: 2,
-          duration: 2,
-          repeat: -1,
-          yoyo: true,
-          ease: "sine.inOut",
-          delay: 0.1
-        });
-
-        gsap.to([leftEarRef.current, rightEarRef.current], {
-          rotate: 5,
+          y: -2,
           duration: 1.5,
           repeat: -1,
           yoyo: true,
           ease: "sine.inOut",
         });
-
-        gsap.to(tailRef.current, {
-          rotate: 10,
-          transformOrigin: "bottom left",
-          duration: 1,
+        
+        gsap.to([leftEarRef.current, rightEarRef.current], {
+          rotate: 3,
+          duration: 2,
           repeat: -1,
           yoyo: true,
           ease: "sine.inOut",
+          delay: 0.2
         });
       }
 
+      // Blink animation
       const blink = () => {
         if (state === "happy" || state === "excited") return; 
         const tl = gsap.timeline({
@@ -102,15 +164,16 @@ export const PixelPikachu = ({ state = "neutral", direction = "right", thought, 
         tl.to([leftEyeRef.current, rightEyeRef.current], {
           scaleY: 0.1,
           duration: 0.1,
-          ease: "steps(1)",
+          ease: "power1.in",
         }).to([leftEyeRef.current, rightEyeRef.current], {
           scaleY: 1,
-          duration: 0.1,
-          ease: "steps(1)",
+          duration: 0.15,
+          ease: "power1.out",
         });
       };
       blink();
 
+      // State-specific animations
       if (state === "happy" || state === "excited") {
         gsap.to(rightEyeRef.current, { scaleY: 0.2, duration: 0.2, ease: "steps(1)" });
         gsap.to(mouthRef.current, {
@@ -123,8 +186,8 @@ export const PixelPikachu = ({ state = "neutral", direction = "right", thought, 
 
         if (state === "excited") {
           gsap.to(containerRef.current, {
-            y: -25,
-            duration: 0.4,
+            y: -15,
+            duration: 0.3,
             repeat: -1,
             yoyo: true,
             ease: "power1.inOut"
@@ -143,23 +206,24 @@ export const PixelPikachu = ({ state = "neutral", direction = "right", thought, 
         gsap.to(leftArmRef.current, { y: 4, duration: 0.1, repeat: -1, yoyo: true });
         gsap.to(rightArmRef.current, { y: 4, duration: 0.1, repeat: -1, yoyo: true, delay: 0.05 });
       } else if (state === "walking") {
-        gsap.to(containerRef.current, {
-          y: -5,
-          duration: 0.15,
-          repeat: -1,
-          yoyo: true,
-          ease: "power1.out"
+        // Enhanced walking animation
+        const walkTl = gsap.timeline({ repeat: -1, yoyo: true });
+        
+        walkTl.to(containerRef.current, {
+          y: -6,
+          rotate: 2,
+          duration: 0.2,
+          ease: "power1.inOut"
         });
         
-        gsap.to(leftArmRef.current, { rotate: 45, duration: 0.3, repeat: -1, yoyo: true });
-        gsap.to(rightArmRef.current, { rotate: -45, duration: 0.3, repeat: -1, yoyo: true });
-        
-        gsap.to([leftEarRef.current, rightEarRef.current], { rotate: -5, duration: 0.15, repeat: -1, yoyo: true });
-        
-        gsap.to(tailRef.current, { rotate: 15, duration: 0.3, repeat: -1, yoyo: true });
+        gsap.to(leftArmRef.current, { rotate: 45, duration: 0.4, repeat: -1, yoyo: true, ease: "sine.inOut" });
+        gsap.to(rightArmRef.current, { rotate: -45, duration: 0.4, repeat: -1, yoyo: true, ease: "sine.inOut" });
+        gsap.to([leftEarRef.current, rightEarRef.current], { rotate: -5, duration: 0.2, repeat: -1, yoyo: true });
+        gsap.to(tailRef.current, { rotate: 15, duration: 0.4, repeat: -1, yoyo: true });
       }
 
-      if (thought) {
+      // Thought bubble animation
+      if (activeThought) {
         gsap.set(thoughtRef.current, { display: "block" });
         gsap.fromTo(thoughtRef.current, 
           { scale: 0, opacity: 0, y: 10, rotate: -10 },
@@ -175,10 +239,16 @@ export const PixelPikachu = ({ state = "neutral", direction = "right", thought, 
     }, wrapperRef);
 
     return () => ctx.revert();
-  }, [state, thought]);
+  }, [state, activeThought]);
 
   return (
-    <div ref={wrapperRef} className={`relative flex items-center justify-center z-20 ${className}`}>
+    <div 
+      ref={wrapperRef} 
+      className={`relative flex items-center justify-center z-20 cursor-pointer ${className}`}
+      onClick={handleInteraction}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+    >
       <div ref={containerRef} className="relative flex flex-col items-center">
         
         <div ref={tailRef} className="absolute bottom-4 left-10 w-24 h-24 z-[-1] origin-bottom-left">
@@ -237,7 +307,7 @@ export const PixelPikachu = ({ state = "neutral", direction = "right", thought, 
       >
           <div className="absolute -bottom-3 left-6 w-5 h-5 bg-white border-b-4 border-r-4 border-black transform rotate-45" />
           <p className="font-display text-sm font-bold uppercase leading-tight text-center text-black">
-            {thought}
+            {activeThought}
           </p>
       </div>
     </div>

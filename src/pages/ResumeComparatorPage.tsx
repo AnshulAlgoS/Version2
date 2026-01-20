@@ -366,76 +366,123 @@ const ResumeComparatorPage = () => {
 
         {result && (
           <div className="animate-in fade-in slide-in-from-bottom-10 duration-700">
-            <div className="bg-white border-4 border-black p-8 shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] relative overflow-hidden">
-               <div className="absolute top-0 right-0 p-32 bg-primary/5 rounded-full blur-3xl -z-10" />
+            {/* Gaming "Monitor" Frame */}
+            <div className="bg-zinc-900 border-4 border-zinc-800 p-1 rounded-lg shadow-[0_0_40px_rgba(0,0,0,0.5)] overflow-hidden relative">
+               
+               {/* Scanline Effect Overlay */}
+               <div className="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] z-20 pointer-events-none bg-[length:100%_4px,3px_100%] opacity-20" />
+               <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent z-20 pointer-events-none opacity-10" />
 
-               <div className="flex flex-col md:flex-row gap-12 items-start">
-                  <div className="flex-shrink-0 text-center mx-auto md:mx-0">
-                    <div className="relative inline-flex items-center justify-center">
-                      <svg className="w-48 h-48 transform -rotate-90">
-                        <circle cx="96" cy="96" r="88" stroke="currentColor" strokeWidth="12" fill="transparent" className="text-gray-200" />
-                        <circle cx="96" cy="96" r="88" stroke="currentColor" strokeWidth="12" fill="transparent" strokeDasharray={2 * Math.PI * 88} strokeDashoffset={2 * Math.PI * 88 * (1 - result.score / 100)} className={`${result.score > 70 ? "text-green-500" : result.score > 40 ? "text-yellow-500" : "text-red-500"} transition-all duration-1000 ease-out`} />
-                      </svg>
-                      <div className="absolute inset-0 flex flex-col items-center justify-center">
-                        <span className="text-5xl font-black font-display">{result.score}</span>
-                        <span className="text-sm font-bold uppercase text-muted-foreground">Match Score</span>
-                      </div>
-                    </div>
-                    <div className="mt-4 font-bold text-xl uppercase tracking-tight">{result.verdict}</div>
+               <div className="bg-zinc-950 border-2 border-zinc-800 p-8 relative overflow-hidden text-green-400 font-mono">
+                  
+                  {/* Header Bar */}
+                  <div className="flex items-center justify-between border-b-2 border-green-900/50 pb-4 mb-8">
+                     <h2 className="text-3xl font-black uppercase tracking-widest text-green-500 drop-shadow-[0_0_10px_rgba(34,197,94,0.5)] font-display">
+                        <Swords className="inline-block mr-3 w-8 h-8 animate-pulse" /> 
+                        Mission Report
+                     </h2>
+                     <div className="flex gap-4 text-xs font-bold uppercase tracking-wider text-zinc-500">
+                        <span>SYS.VER.2.0</span>
+                        <span>TARGET_LOCKED</span>
+                        <span className="text-green-500 animate-pulse">● LIVE</span>
+                     </div>
                   </div>
 
-                  <div className="flex-grow space-y-8 w-full">
-                    
-                    {result.detailedAnalysis && (
-                      <div>
-                        <h3 className="text-lg font-bold font-display uppercase mb-3 flex items-center text-purple-600">
-                          <FileText className="w-5 h-5 mr-2" /> Analysis & Feedback
-                        </h3>
-                        <div className="p-4 bg-purple-50 border-2 border-purple-100 rounded-lg text-sm leading-relaxed whitespace-pre-wrap text-purple-900 font-medium">
-                          {result.detailedAnalysis}
-                        </div>
-                      </div>
-                    )}
+                  <div className="flex flex-col md:flex-row gap-12 items-start">
+                     
+                     {/* Left Column: Stats & Score */}
+                     <div className="flex-shrink-0 text-center mx-auto md:mx-0 w-full md:w-64">
+                       <div className="relative inline-flex items-center justify-center mb-6">
+                         {/* SVG Gauge */}
+                         <svg className="w-56 h-56 transform -rotate-90 filter drop-shadow-[0_0_15px_rgba(34,197,94,0.3)]">
+                           <circle cx="112" cy="112" r="100" stroke="#1f2937" strokeWidth="16" fill="transparent" />
+                           <circle 
+                              cx="112" cy="112" r="100" 
+                              stroke={result.score > 85 ? "#22c55e" : result.score > 50 ? "#eab308" : "#ef4444"} 
+                              strokeWidth="16" 
+                              fill="transparent" 
+                              strokeDasharray={2 * Math.PI * 100} 
+                              strokeDashoffset={2 * Math.PI * 100 * (1 - result.score / 100)} 
+                              strokeLinecap="round"
+                              className="transition-all duration-1000 ease-out" 
+                           />
+                         </svg>
+                         <div className="absolute inset-0 flex flex-col items-center justify-center">
+                           <span className={`text-6xl font-black font-display tracking-tighter ${result.score > 85 ? "text-green-400" : result.score > 50 ? "text-yellow-400" : "text-red-500"}`}>
+                              {result.score}
+                           </span>
+                           <span className="text-xs font-bold uppercase text-zinc-500 tracking-[0.2em] mt-1">Power Level</span>
+                         </div>
+                       </div>
+                       
+                       <div className={`p-4 border-2 ${result.score > 85 ? "border-green-500/50 bg-green-500/10" : result.score > 50 ? "border-yellow-500/50 bg-yellow-500/10" : "border-red-500/50 bg-red-500/10"} rounded backdrop-blur-sm`}>
+                          <div className="font-bold text-xl uppercase tracking-tight mb-1 font-display">{result.verdict}</div>
+                          <div className="h-1 w-full bg-zinc-800 rounded-full overflow-hidden">
+                             <div className={`h-full ${result.score > 85 ? "bg-green-500" : result.score > 50 ? "bg-yellow-500" : "bg-red-500"}`} style={{ width: `${result.score}%` }} />
+                          </div>
+                       </div>
+                     </div>
 
-                    <div>
-                      <h3 className="text-lg font-bold font-display uppercase mb-3 flex items-center text-red-600">
-                        <AlertCircle className="w-5 h-5 mr-2" /> Missing Skills (Critical Hit!)
-                      </h3>
-                      <div className="flex flex-wrap gap-2">
-                        {result.missingSkills.length > 0 ? (
-                          result.missingSkills.map((skill, i) => (
-                            <span key={i} className="px-3 py-1 bg-red-100 border-2 border-red-200 text-red-700 font-bold text-sm rounded-full">
-                              {skill}
-                            </span>
-                          ))
-                        ) : (
-                          <span className="text-muted-foreground italic">None! You are fully equipped.</span>
-                        )}
-                      </div>
-                    </div>
+                     {/* Right Column: Detailed Data */}
+                     <div className="flex-grow w-full space-y-10">
+                       
+                       {/* Main Analysis Text */}
+                       {result.detailedAnalysis && (
+                         <div className="group">
+                           <h3 className="text-xl font-bold font-display uppercase mb-4 flex items-center text-blue-400 border-b border-blue-900/30 pb-2">
+                             <FileText className="w-5 h-5 mr-3" /> Tactical Analysis
+                           </h3>
+                           <div className="p-6 bg-blue-950/20 border border-blue-900/50 rounded text-sm md:text-base leading-relaxed whitespace-pre-wrap text-blue-100 font-mono shadow-[inset_0_0_20px_rgba(30,58,138,0.2)]">
+                             {result.detailedAnalysis}
+                           </div>
+                         </div>
+                       )}
 
-                    <div>
-                       <h3 className="text-lg font-bold font-display uppercase mb-3 flex items-center text-blue-600">
-                        <CheckCircle2 className="w-5 h-5 mr-2" /> Recommended Actions
-                      </h3>
-                      <ul className="space-y-2">
-                        {result.improvements.map((item, i) => (
-                          <li key={i} className="flex items-start gap-2 text-sm font-medium">
-                            <span className="mt-1.5 w-1.5 h-1.5 bg-blue-500 rounded-full flex-shrink-0" />
-                            {item}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
+                       {/* Missing Skills (Debuffs) */}
+                       <div>
+                         <h3 className="text-xl font-bold font-display uppercase mb-4 flex items-center text-red-500 border-b border-red-900/30 pb-2">
+                           <AlertCircle className="w-5 h-5 mr-3" /> Critical Debuffs (Missing)
+                         </h3>
+                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                           {result.missingSkills.length > 0 ? (
+                             result.missingSkills.map((skill, i) => (
+                               <div key={i} className="flex items-center p-3 bg-red-950/30 border border-red-900/50 rounded hover:bg-red-900/20 transition-colors">
+                                 <span className="w-2 h-2 bg-red-500 rounded-full mr-3 animate-pulse" />
+                                 <span className="text-red-200 font-bold text-sm">{skill}</span>
+                               </div>
+                             ))
+                           ) : (
+                             <span className="text-green-500 italic">No debuffs detected. Build is optimized.</span>
+                           )}
+                         </div>
+                       </div>
 
+                       {/* Recommended Actions (Quests) */}
+                       <div>
+                          <h3 className="text-xl font-bold font-display uppercase mb-4 flex items-center text-yellow-400 border-b border-yellow-900/30 pb-2">
+                           <CheckCircle2 className="w-5 h-5 mr-3" /> Skill Tree Upgrades
+                         </h3>
+                         <ul className="space-y-4">
+                           {result.improvements.map((item, i) => (
+                             <li key={i} className="flex items-start gap-4 p-4 bg-yellow-950/20 border border-yellow-900/50 rounded hover:border-yellow-500/50 transition-all group">
+                               <div className="mt-1 w-6 h-6 flex items-center justify-center bg-yellow-500/20 text-yellow-500 font-bold text-xs border border-yellow-500/50 rounded-sm group-hover:bg-yellow-500 group-hover:text-black transition-colors">
+                                 {i + 1}
+                               </div>
+                               <span className="text-yellow-100 text-sm md:text-base font-medium leading-relaxed">{item}</span>
+                             </li>
+                           ))}
+                         </ul>
+                       </div>
+
+                     </div>
                   </div>
                </div>
             </div>
             
             <div className="text-center mt-8">
-               <p className="text-muted-foreground mb-4">Saved to your profile history.</p>
-               <Button onClick={() => navigate('/app')} variant="outline" className="border-2 border-black font-bold">
-                 Return to Dashboard
+               <p className="text-muted-foreground mb-4 font-mono text-xs uppercase tracking-widest">&gt;&gt; Data saved to local memory &lt;&lt;</p>
+               <Button onClick={() => navigate('/app')} variant="outline" className="border-2 border-black font-bold hover:bg-black hover:text-white transition-all uppercase font-display tracking-widest">
+                 Return to Base
                </Button>
             </div>
           </div>
